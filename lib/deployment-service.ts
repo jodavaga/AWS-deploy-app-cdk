@@ -4,6 +4,7 @@ import {
   aws_cloudfront_origins,
   aws_s3_deployment,
   CfnOutput,
+  RemovalPolicy,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -16,6 +17,7 @@ export class DeploymentService extends Construct {
     // S3 bucket to host the frontend
     const hostingBucket = new aws_s3.Bucket(this, "FrontendBucket", {
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     // CloudFront distribution to serve the content
