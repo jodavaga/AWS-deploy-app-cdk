@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { InfraStack } from "../lib/infra-stack";
+import { ProductLambdaStack } from "../lib/services/product/product-lambda-stack";
 
 const app = new cdk.App();
 new InfraStack(app, "DeployWebAppStack", {
@@ -15,3 +16,5 @@ new InfraStack(app, "DeployWebAppStack", {
   // env: { account: "485824811094", region: "us-east-1" },
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+
+new ProductLambdaStack(app, "ProductLambdaStack", {});

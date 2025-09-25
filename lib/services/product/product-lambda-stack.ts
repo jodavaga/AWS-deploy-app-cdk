@@ -8,11 +8,19 @@ export class ProductLambdaStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const lambdaFunction = new lambda.Function(this, "getProductsList", {
+    const getAllProductsLambda = new lambda.Function(this, "getProductsList", {
       runtime: lambda.Runtime.NODEJS_20_X,
       memorySize: 1024,
       timeout: cdk.Duration.seconds(5),
-      handler: "handler.main",
+      handler: "handler.getAllProducts",
+      code: lambda.Code.fromAsset(path.join(__dirname, "./")),
+    });
+
+    const getProductLambda = new lambda.Function(this, "getProduct", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      memorySize: 1024,
+      timeout: cdk.Duration.seconds(5),
+      handler: "handler.getProduct",
       code: lambda.Code.fromAsset(path.join(__dirname, "./")),
     });
 
@@ -22,29 +30,22 @@ export class ProductLambdaStack extends cdk.Stack {
         "This API serves the Lambda functions for store of products.",
     });
 
-    const productLambdaIntegration = new apigateway.LambdaIntegration(
-      lambdaFunction,
+    const getAllProductsLambdaIntegration = new apigateway.LambdaIntegration(
+      getAllProductsLambda,
+      {}
+    );
+    const getProductLambdaIntegration = new apigateway.LambdaIntegration(
+      getProductLambda,
       {
-        requestTemplates: {
-          "application/json": `{ "data": "$input" }`, // Map the query param message
-        },
-        integrationResponses: [
-          {
-            statusCode: "200",
-          },
-        ],
-        proxy: false,
+        proxy: true,
       }
     );
 
     const productsResource = api.root.addResource("products");
-    // On this resource attach a GET method which pass reuest to our Lambda function
-    productsResource.addMethod("GET", productLambdaIntegration, {
-      methodResponses: [{ statusCode: "200" }],
-    });
-    productsResource.addCorsPreflight({
-      allowOrigins: ["https://d1m24vp5syugwb.cloudfront.net"],
-      allowMethods: ["GET"],
-    });
+    const productByIdResource = productsResource.addResource("{productId}");
+
+    // Resources
+    productsResource.addMethod("GET", getAllProductsLambdaIntegration);
+    productByIdResource.addMethod("GET", getProductLambdaIntegration);
   }
 }
