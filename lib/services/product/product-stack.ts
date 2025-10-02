@@ -60,10 +60,6 @@ export class ProductStack extends cdk.Stack {
         name: "id",
         type: AttributeType.STRING,
       },
-      sortKey: {
-        name: "createdAt",
-        type: AttributeType.NUMBER,
-      },
     });
 
     const stockTable = new DynamoDbBaseTable(this, "Stock", {
@@ -72,10 +68,6 @@ export class ProductStack extends cdk.Stack {
         name: "product_id",
         type: AttributeType.STRING,
       },
-      // sortKey: {
-      //   name: "product_id",
-      //   type: AttributeType.NUMBER,
-      // },
     });
 
     // Lambdas for Dynamo tables
