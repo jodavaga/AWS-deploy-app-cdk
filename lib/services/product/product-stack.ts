@@ -6,7 +6,8 @@ import { Construct } from "constructs";
 import { DynamoDbBaseTable } from "../../../src/dynamodb/dynamodb-base-class";
 import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
 
-const PRODUCTS_TABLE_NAME = "products";
+export const PRODUCTS_TABLE_NAME = "products";
+export const STOCK_TABLE_NAME = "stock";
 
 export class ProductStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -65,17 +66,47 @@ export class ProductStack extends cdk.Stack {
       },
     });
 
+    const stockTable = new DynamoDbBaseTable(this, "Stock", {
+      tableName: STOCK_TABLE_NAME,
+      partitionKey: {
+        name: "product_id",
+        type: AttributeType.STRING,
+      },
+      // sortKey: {
+      //   name: "product_id",
+      //   type: AttributeType.NUMBER,
+      // },
+    });
+
+    // Lambdas for Dynamo tables
     const addProductLambda = new lambda.Function(this, "Products-lambda", {
       runtime: lambda.Runtime.NODEJS_20_X,
       memorySize: 1024,
       timeout: cdk.Duration.seconds(5),
       handler: "products-table-handler.addProduct",
-      code: lambda.Code.fromAsset(path.join(__dirname, "../../../src/lambda/")),
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../../../src/lambda/products")
+      ),
       environment: {
         TABLE_NAME: PRODUCTS_TABLE_NAME,
       },
     });
 
+    const stockLambda = new lambda.Function(this, "Stock-lambda", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      memorySize: 1024,
+      timeout: cdk.Duration.seconds(5),
+      handler: "stock-handler.addStock",
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../../../src/lambda/stock")
+      ),
+      environment: {
+        TABLE_NAME: STOCK_TABLE_NAME,
+      },
+    });
+
     productsTable.grantWriteData(addProductLambda);
+    productsTable.grantReadData(stockLambda);
+    stockTable.grantWriteData(stockLambda);
   }
 }
