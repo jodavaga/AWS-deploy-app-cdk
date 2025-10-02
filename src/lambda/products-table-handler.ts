@@ -14,7 +14,7 @@ export const addProduct: Handler = async (event, context) => {
         id: { S: crypto.randomUUID() },
         title: { S: event.title },
         description: { S: event.description },
-        price: { N: event.price || 100 },
+        price: { N: event.price || "50" },
         createdAt: { N: new Date().getTime().toFixed() },
       },
     });

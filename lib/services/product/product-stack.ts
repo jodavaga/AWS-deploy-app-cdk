@@ -65,7 +65,7 @@ export class ProductStack extends cdk.Stack {
       },
     });
 
-    const addProductLambda = new lambda.Function(this, "lambda-function", {
+    const addProductLambda = new lambda.Function(this, "Products-lambda", {
       runtime: lambda.Runtime.NODEJS_20_X,
       memorySize: 1024,
       timeout: cdk.Duration.seconds(5),
