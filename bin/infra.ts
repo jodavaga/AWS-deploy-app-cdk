@@ -1,9 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import { ProductStack } from "../lib/services/product/product-stack";
-// import { DeployWebAppStack } from "../lib/deploy-web-app-stack";
+import { DeployWebAppStack } from "../lib/deploy-web-app-stack";
 
 const app = new cdk.App();
-// new DeployWebAppStack(app, "DeployWebAppStack", {
+new DeployWebAppStack(app, "DeployWebAppStack", {});
 //   //   /* If you don't specify 'env', this stack will be environment-agnostic.
 //   //    * Account/Region-dependent features and context lookups will not work,
 //   //    * but a single synthesized template can be deployed anywhere. */

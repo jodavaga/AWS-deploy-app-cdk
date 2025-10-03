@@ -8,7 +8,7 @@ import {
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
-const path = "./resources/build";
+const path = "./resources/dist";
 
 export class DeploymentService extends Construct {
   constructor(scope: Construct, id: string) {

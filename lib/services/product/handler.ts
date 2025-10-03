@@ -59,17 +59,18 @@ export async function getAllProducts(
         ?.count,
     }));
 
-    const response = {
-      data: productsStockJoined,
-      statusCode: 200,
-    };
+    // const response = {
+    //   data: productsStockJoined,
+    //   statusCode: 200,
+    // };
 
     return {
       statusCode: 200,
       headers: {
         "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
-      body: JSON.stringify(response),
+      body: JSON.stringify(productsStockJoined),
     };
   } catch (err) {
     return {
@@ -107,17 +108,19 @@ export async function getProduct(
     const productData = unmarshall(productResult.Item ?? {});
     console.log("🚀 ~ getProduct ~ productResult:", productData);
 
-    const response = {
-      data: productData,
-      statusCode: 200,
-    };
+    // const response = {
+    //   data: productData,
+    //   statusCode: 200,
+    // };
 
     return {
       statusCode: 200,
       headers: {
         "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
       },
-      body: JSON.stringify(response),
+      body: JSON.stringify(productData),
     };
   } catch (err) {
     return {

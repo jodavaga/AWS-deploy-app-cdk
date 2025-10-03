@@ -1,0 +1,619 @@
+Resources:
+  getProductsListServiceRoleC64A5CD3:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ProductStack/getProductsList/ServiceRole/Resource
+  getProductsListServiceRoleDefaultPolicyFCF405B6:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:ConditionCheckItem
+              - dynamodb:DescribeTable
+              - dynamodb:GetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:Scan
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - Products229621C6
+                  - Arn
+              - Fn::GetAtt:
+                  - Stock38709CBC
+                  - Arn
+        Version: "2012-10-17"
+      PolicyName: getProductsListServiceRoleDefaultPolicyFCF405B6
+      Roles:
+        - Ref: getProductsListServiceRoleC64A5CD3
+    Metadata:
+      aws:cdk:path: ProductStack/getProductsList/ServiceRole/DefaultPolicy/Resource
+  getProductsList1F4CE4F4:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 6dd86ec85c85315818dbc7fe75a04e96874f3cee91e42ff044d2b0b0505f6dbf.zip
+      Environment:
+        Variables:
+          PRODUCTS_TABLE_NAME: products
+          STOCK_TABLE_NAME: stock
+          region: us-east-1
+      Handler: handler.getAllProducts
+      MemorySize: 1024
+      Role:
+        Fn::GetAtt:
+          - getProductsListServiceRoleC64A5CD3
+          - Arn
+      Runtime: nodejs20.x
+      Timeout: 5
+    DependsOn:
+      - getProductsListServiceRoleDefaultPolicyFCF405B6
+      - getProductsListServiceRoleC64A5CD3
+    Metadata:
+      aws:cdk:path: ProductStack/getProductsList/Resource
+      aws:asset:path: asset.6dd86ec85c85315818dbc7fe75a04e96874f3cee91e42ff044d2b0b0505f6dbf
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  getProductsListLogGroupA125C05D:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: getProductsList1F4CE4F4
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: ProductStack/getProductsList/LogGroup/Resource
+  getProductServiceRole24C91917:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ProductStack/getProduct/ServiceRole/Resource
+  getProductServiceRoleDefaultPolicy9EDE1469:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:ConditionCheckItem
+              - dynamodb:DescribeTable
+              - dynamodb:GetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:Scan
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - Products229621C6
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: getProductServiceRoleDefaultPolicy9EDE1469
+      Roles:
+        - Ref: getProductServiceRole24C91917
+    Metadata:
+      aws:cdk:path: ProductStack/getProduct/ServiceRole/DefaultPolicy/Resource
+  getProduct73ED23D5:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 6dd86ec85c85315818dbc7fe75a04e96874f3cee91e42ff044d2b0b0505f6dbf.zip
+      Environment:
+        Variables:
+          PRODUCTS_TABLE_NAME: products
+          STOCK_TABLE_NAME: stock
+          region: us-east-1
+      Handler: handler.getProduct
+      MemorySize: 1024
+      Role:
+        Fn::GetAtt:
+          - getProductServiceRole24C91917
+          - Arn
+      Runtime: nodejs20.x
+      Timeout: 5
+    DependsOn:
+      - getProductServiceRoleDefaultPolicy9EDE1469
+      - getProductServiceRole24C91917
+    Metadata:
+      aws:cdk:path: ProductStack/getProduct/Resource
+      aws:asset:path: asset.6dd86ec85c85315818dbc7fe75a04e96874f3cee91e42ff044d2b0b0505f6dbf
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  getProductLogGroupAF864C13:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: getProduct73ED23D5
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: ProductStack/getProduct/LogGroup/Resource
+  storeapiEC91C965:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: This API serves the Lambda functions for STORE
+      Name: Products Store API Gateway
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Resource
+  storeapiDeployment9AC113C84a86990afbff7621b7da6a6b042a02ee:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      Description: This API serves the Lambda functions for STORE
+      RestApiId:
+        Ref: storeapiEC91C965
+    DependsOn:
+      - storeapiproductsproductIdGETE548DCAA
+      - storeapiproductsproductIdAA88AA58
+      - storeapiproductsGET95B2C20F
+      - storeapiproducts1DE986A3
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Deployment/Resource
+      aws:cdk:do-not-refactor: true
+  storeapiDeploymentStageprod86894C22:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId:
+        Ref: storeapiDeployment9AC113C84a86990afbff7621b7da6a6b042a02ee
+      RestApiId:
+        Ref: storeapiEC91C965
+      StageName: prod
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/DeploymentStage.prod/Resource
+  storeapiproducts1DE986A3:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - storeapiEC91C965
+          - RootResourceId
+      PathPart: products
+      RestApiId:
+        Ref: storeapiEC91C965
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/Resource
+  storeapiproductsproductIdAA88AA58:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: storeapiproducts1DE986A3
+      PathPart: "{productId}"
+      RestApiId:
+        Ref: storeapiEC91C965
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/{productId}/Resource
+  storeapiproductsproductIdGETApiPermissionProductStackstoreapi9A04AE1DGETproductsproductId0D11F827:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getProduct73ED23D5
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: storeapiEC91C965
+            - /
+            - Ref: storeapiDeploymentStageprod86894C22
+            - /GET/products/*
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/{productId}/GET/ApiPermission.ProductStackstoreapi9A04AE1D.GET..products.{productId}
+  storeapiproductsproductIdGETApiPermissionTestProductStackstoreapi9A04AE1DGETproductsproductId1F956D19:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getProduct73ED23D5
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: storeapiEC91C965
+            - /test-invoke-stage/GET/products/*
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/{productId}/GET/ApiPermission.Test.ProductStackstoreapi9A04AE1D.GET..products.{productId}
+  storeapiproductsproductIdGETE548DCAA:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - getProduct73ED23D5
+                  - Arn
+              - /invocations
+      ResourceId:
+        Ref: storeapiproductsproductIdAA88AA58
+      RestApiId:
+        Ref: storeapiEC91C965
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/{productId}/GET/Resource
+  storeapiproductsGETApiPermissionProductStackstoreapi9A04AE1DGETproducts829D6033:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getProductsList1F4CE4F4
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: storeapiEC91C965
+            - /
+            - Ref: storeapiDeploymentStageprod86894C22
+            - /GET/products
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/GET/ApiPermission.ProductStackstoreapi9A04AE1D.GET..products
+  storeapiproductsGETApiPermissionTestProductStackstoreapi9A04AE1DGETproducts6FCDA52F:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getProductsList1F4CE4F4
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: storeapiEC91C965
+            - /test-invoke-stage/GET/products
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/GET/ApiPermission.Test.ProductStackstoreapi9A04AE1D.GET..products
+  storeapiproductsGET95B2C20F:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - getProductsList1F4CE4F4
+                  - Arn
+              - /invocations
+      ResourceId:
+        Ref: storeapiproducts1DE986A3
+      RestApiId:
+        Ref: storeapiEC91C965
+    Metadata:
+      aws:cdk:path: ProductStack/store-api/Default/products/GET/Resource
+  Products229621C6:
+    Type: AWS::DynamoDB::GlobalTable
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Replicas:
+        - Region:
+            Ref: AWS::Region
+      TableName: products
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: ProductStack/Products/Resource
+  Stock38709CBC:
+    Type: AWS::DynamoDB::GlobalTable
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: product_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: product_id
+          KeyType: HASH
+      Replicas:
+        - Region:
+            Ref: AWS::Region
+      TableName: stock
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: ProductStack/Stock/Resource
+  PopulateTablesServiceRoleE8329202:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ProductStack/PopulateTables/ServiceRole/Resource
+  PopulateTablesServiceRoleDefaultPolicyD4B81628:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:DeleteItem
+              - dynamodb:DescribeTable
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - Products229621C6
+                  - Arn
+              - Fn::GetAtt:
+                  - Stock38709CBC
+                  - Arn
+        Version: "2012-10-17"
+      PolicyName: PopulateTablesServiceRoleDefaultPolicyD4B81628
+      Roles:
+        - Ref: PopulateTablesServiceRoleE8329202
+    Metadata:
+      aws:cdk:path: ProductStack/PopulateTables/ServiceRole/DefaultPolicy/Resource
+  PopulateTables0B2ADE64:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+        S3Key: 777b0bc364b4a69e36a54d6183ceba921de177f1979ce97acbf24b5c90e1da3f.zip
+      Environment:
+        Variables:
+          PRODUCTS_TABLE_NAME: products
+          STOCK_TABLE_NAME: stock
+          region: us-east-1
+      Handler: handler.populateTables
+      MemorySize: 1024
+      Role:
+        Fn::GetAtt:
+          - PopulateTablesServiceRoleE8329202
+          - Arn
+      Runtime: nodejs20.x
+      Timeout: 5
+    DependsOn:
+      - PopulateTablesServiceRoleDefaultPolicyD4B81628
+      - PopulateTablesServiceRoleE8329202
+    Metadata:
+      aws:cdk:path: ProductStack/PopulateTables/Resource
+      aws:asset:path: asset.777b0bc364b4a69e36a54d6183ceba921de177f1979ce97acbf24b5c90e1da3f
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  PopulateTablesLogGroup3E341DD0:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: PopulateTables0B2ADE64
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: ProductStack/PopulateTables/LogGroup/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/+1WwW7bMAz9lulYqNqW7pRb2m1FsW4LkmAXIygYiXPUypIgyQ08wf8+SLbjFN2CAW0vxU6mHynykZQoTdjk/Qf27g3s/CkXd6dKblhcBuB3FHb+JiqoNgJY/FxrHqTRRSSu1kFWSKbkhFBSYWVcs5S/BiDpTB36vy1oodD1f9yIwQz1vXRGV6g705ZGAkJ8OoSLbHlC1k9T/if8ooTX9OKnHvZHkufoKum9NLqlEioWF0ZhEQl4X1cozhsyjcQ6qbm0oGacm1oP2XQ2acEs++uZkwo0lCjmRkku0ZNpER9gzcz1tgPblZkPITqLtKbXhgB8e6WV1LjX7RM9qjzu9xUk+ApS+LvfvFUTcdrBeRMP7lYmaR5FeQwLsQwQMJ0Df0D4T/Cz+X9horkwXU1a6s9uwHsMns3Sh/ozdl7zOwzn4LFYU2VKz+K1KS+dqW0RierFb9APrRTmH8EcefDVUrCyhIA7aFhcoA8zK9OV00n7VZQI9NxJO26/rrWdHf2IVpkmJVjER6aUgJW95DCA1KO5P5yUK3NtSslBXYkH1Xs6nsmOUekyQImZ6gAdJJWVdIHe1I5j7kHq8B4pIrHgcH88LYTtHNw49I9oh6plR/Qrhq0RXb0zMlwxIdhO1wNSBywdHJTU5PqO5Xuih8yrW9BS0WiojNiwuIKNwh+TIpKQpIP9YMEFmRx8wTy69KgKjU3iMo0ob1zIFj3N53CTuV4qswGV+bXt2Jr+kswXJc2nKXVT6jKt+V4HW4eWaiOQ3fq395MJy4+xWy/laf8IYIvu+xtRnhNTqQkAAA==
+    Metadata:
+      aws:cdk:path: ProductStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Outputs:
+  storeapiEndpointB52E71C0:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: storeapiEC91C965
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: storeapiDeploymentStageprod86894C22
+          - /
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - af-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-3
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-4
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-2
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - il-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+      - Fn::Equals:
+          - Ref: AWS::Region
+          - us-west-2
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+

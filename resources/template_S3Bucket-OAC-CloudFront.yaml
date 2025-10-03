@@ -5,7 +5,7 @@ Resources:
   AssetsBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: "jodavaga-aws-practitioner-js-bucket-v2"
+      BucketName: "deploywebappstack-deploymentservicefrontendbucketd-bvpilxkrtrdx"
   AssetsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:

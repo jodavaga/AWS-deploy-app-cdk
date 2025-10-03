@@ -6,9 +6,10 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 ## URLs
 
-- [CloudFront URL](https://d1m24vp5syugwb.cloudfront.net/)
+- [CloudFront URL](https://dz4s6rslc2nya.cloudfront.net/)
 
 - [S3-website ](http://jodavaga-aws-practitioner-js-bucket-v2.s3-website-us-east-1.amazonaws.com/)
+
 
 ## Useful commands
 
