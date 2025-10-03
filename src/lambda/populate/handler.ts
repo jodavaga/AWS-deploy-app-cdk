@@ -51,8 +51,9 @@ export const productsMock: Product[] = [
   },
 ];
 
-export const productsTableName = process.env.PRODUCTS_TABLE_NAME || "products";
-export const stockTableName = process.env.STOCK_TABLE_NAME || "stock";
+export const productsTableName =
+  process.env.PRODUCTS_TABLE_NAME || "productsAA";
+export const stockTableName = process.env.STOCK_TABLE_NAME || "stockAA";
 
 export const populateTables: Handler = async (event, context) => {
   try {
