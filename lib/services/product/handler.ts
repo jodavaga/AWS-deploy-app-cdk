@@ -59,11 +59,6 @@ export async function getAllProducts(
         ?.count,
     }));
 
-    console.log(
-      "🚀 ~ getAllProducts ~ productsStockJoined:",
-      productsStockJoined
-    );
-
     const response = {
       data: productsStockJoined,
       statusCode: 200,
@@ -92,26 +87,28 @@ export async function getProduct(
 ): Promise<ResponseProxyType> {
   try {
     const productId = event.pathParameters?.productId;
-    // const product = products.find((p) => p.id === productId);
+    console.log("🚀 ~ getProduct ~ productId:", productId, event);
 
     const getProductCommand = new GetItemCommand({
       TableName: productsTableName,
       Key: {
-        id: { S: productId || "" },
+        id: { S: productId || "mockId" },
       },
     });
 
     const productResult = await dynamoDBClient.send(getProductCommand);
-    console.log("🚀 ~ getProduct ~ productResult:", productResult);
-
     if (!productResult) {
       return {
         statusCode: 404,
         body: `Product Id: ${productId} not found`,
       } as ResponseProxyType;
     }
+
+    const productData = unmarshall(productResult.Item ?? {});
+    console.log("🚀 ~ getProduct ~ productResult:", productData);
+
     const response = {
-      data: productResult,
+      data: productData,
       statusCode: 200,
     };
 

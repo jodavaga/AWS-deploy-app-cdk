@@ -36,12 +36,21 @@ export class ProductStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(5),
       handler: "handler.getProduct",
       code: lambda.Code.fromAsset(path.join(__dirname, "./")),
+      environment: {
+        PRODUCTS_TABLE_NAME:
+          PRODUCTS_TABLE_NAME ?? PRODUCTS_TABLE_NAME.tableName,
+        STOCK_TABLE_NAME: STOCK_TABLE_NAME ?? STOCK_TABLE_NAME.tableName,
+        region: AWS_REGION,
+      },
     });
 
     const api = new apigateway.RestApi(this, "store-api", {
       restApiName: "Products Store API Gateway",
-      description:
-        "This API serves the Lambda functions for store of products.",
+      description: "This API serves the Lambda functions for STORE",
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+      },
     });
 
     const getAllProductsLambdaIntegration = new apigateway.LambdaIntegration(
@@ -101,6 +110,7 @@ export class ProductStack extends cdk.Stack {
     stockTable.grantWriteData(populateTablesLambda);
     // Read
     productsTable.grantReadData(getAllProductsLambda);
+    productsTable.grantReadData(getProductLambda);
     stockTable.grantReadData(getAllProductsLambda);
   }
 }
