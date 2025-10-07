@@ -9,10 +9,11 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "npm run build && npx aws-cdk deploy"
+    "deploy": "npm run build && npx aws-cdk deploy",
+    "deploy:all": "npm run build && npx aws-cdk deploy --all"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.153",
+    "@types/aws-lambda": "^8.10.155",
     "@types/jest": "^29.5.14",
     "@types/node": "22.7.9",
     "aws-cdk": "2.1029.1",

@@ -44,6 +44,22 @@ export class ProductStack extends cdk.Stack {
       },
     });
 
+    const createProductLambda = new lambda.Function(this, "createProduct", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      memorySize: 1024,
+      timeout: cdk.Duration.seconds(5),
+      handler: "products-table-handler.addProduct",
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../../../src/lambda/products")
+      ),
+      environment: {
+        PRODUCTS_TABLE_NAME:
+          PRODUCTS_TABLE_NAME ?? PRODUCTS_TABLE_NAME.tableName,
+        STOCK_TABLE_NAME: STOCK_TABLE_NAME ?? STOCK_TABLE_NAME.tableName,
+        region: AWS_REGION,
+      },
+    });
+
     const api = new apigateway.RestApi(this, "store-api", {
       restApiName: "Products Store API Gateway",
       description: "This API serves the Lambda functions for STORE",
@@ -55,6 +71,10 @@ export class ProductStack extends cdk.Stack {
 
     const getAllProductsLambdaIntegration = new apigateway.LambdaIntegration(
       getAllProductsLambda,
+      {}
+    );
+    const createProductLambdaIntegration = new apigateway.LambdaIntegration(
+      createProductLambda,
       {}
     );
     const getProductLambdaIntegration = new apigateway.LambdaIntegration(
@@ -69,6 +89,7 @@ export class ProductStack extends cdk.Stack {
 
     // Resources
     productsResource.addMethod("GET", getAllProductsLambdaIntegration);
+    productsResource.addMethod("PUT", createProductLambdaIntegration);
     productByIdResource.addMethod("GET", getProductLambdaIntegration);
 
     //Dynamo DB Tables
@@ -108,6 +129,9 @@ export class ProductStack extends cdk.Stack {
     // Write
     productsTable.grantWriteData(populateTablesLambda);
     stockTable.grantWriteData(populateTablesLambda);
+
+    productsTable.grantWriteData(createProductLambda);
+    stockTable.grantWriteData(createProductLambda);
     // Read
     productsTable.grantReadData(getAllProductsLambda);
     productsTable.grantReadData(getProductLambda);

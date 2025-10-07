@@ -60,6 +60,7 @@ export const populateTables: Handler = async (event, context) => {
     for (let product of productsMock) {
       const productId = crypto.randomUUID();
 
+      // Add Product command
       const addProductCommand = new PutItemCommand({
         TableName: productsTableName,
         Item: {
@@ -77,6 +78,7 @@ export const populateTables: Handler = async (event, context) => {
       );
       results.push(addProductResult);
 
+      // Add Stock command
       const stockCommand = new PutItemCommand({
         TableName: stockTableName,
         Item: {
