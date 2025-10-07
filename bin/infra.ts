@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { ProductStack } from "../lib/services/product/product-stack";
 import { DeployWebAppStack } from "../lib/deploy-web-app-stack";
+import { ImportServiceStack } from "../lib/services/s3/ImportServiceStack";
 
 const app = new cdk.App();
 new DeployWebAppStack(app, "DeployWebAppStack", {});
@@ -17,3 +18,4 @@ new DeployWebAppStack(app, "DeployWebAppStack", {});
 // });
 
 new ProductStack(app, "ProductStack", {});
+new ImportServiceStack(app, "ImportServiceStack", {});
