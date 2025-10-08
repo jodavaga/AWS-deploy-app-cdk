@@ -4,6 +4,7 @@ import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as cdk from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
 import path from "path";
 
@@ -19,10 +20,7 @@ export class ImportServiceStack extends cdk.Stack {
     });
 
     bucket.addCorsRule({
-      allowedOrigins: [
-        "https://dz4s6rslc2nya.cloudfront.net",
-        "http://localhost:3000",
-      ],
+      allowedOrigins: ["*"],
       allowedMethods: [
         s3.HttpMethods.PUT,
         s3.HttpMethods.POST,
@@ -64,6 +62,34 @@ export class ImportServiceStack extends cdk.Stack {
       })
     );
 
+    const importFileParserLambda = new lambda.Function(
+      this,
+      "ImportFileParserLambda",
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        memorySize: 1024,
+        timeout: cdk.Duration.seconds(10),
+        handler: "s3Handler.importFileParser",
+        code: lambda.Code.fromAsset(
+          path.join(__dirname, "../../../src/lambda/s3")
+        ),
+        environment: {
+          BUCKET_NAME: bucket.bucketName,
+        },
+      }
+    );
+
+    // // Grant read access to S3
+    bucket.grantReadWrite(importFileParserLambda);
+
+    // Grant permissions to write to the "parsed/" folder
+    importFileParserLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:PutObject"],
+        resources: [`${bucket.bucketArn}/parsed/*`], // Allow PutObject in parsed folder
+      })
+    );
+
     // 3) API Gateway: create /import GET
     const api = new apigateway.RestApi(this, "ImportApi", {
       restApiName: "Import Service",
@@ -83,9 +109,10 @@ export class ImportServiceStack extends cdk.Stack {
       new apigateway.LambdaIntegration(s3ImportLambda)
     );
 
-    // 4) Output the invoke URL for frontend
-    new cdk.CfnOutput(this, "ImportApiUrl", {
-      value: `${api.url}import`,
-    });
+    bucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(importFileParserLambda),
+      { prefix: "uploaded/" }
+    );
   }
 }
