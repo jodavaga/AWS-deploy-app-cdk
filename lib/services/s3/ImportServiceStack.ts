@@ -7,9 +7,15 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
 import path from "path";
+import { Lambda } from "aws-cdk-lib/aws-ses-actions";
+import { Queue } from "aws-cdk-lib/aws-sqs";
+
+interface ImportServiceStackProps extends cdk.StackProps {
+  catalogItemsQueue: Queue;
+}
 
 export class ImportServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: ImportServiceStackProps) {
     super(scope, id, props);
 
     const bucket = new s3.Bucket(this, "StoreBucket", {
@@ -75,12 +81,16 @@ export class ImportServiceStack extends cdk.Stack {
         ),
         environment: {
           BUCKET_NAME: bucket.bucketName,
+          CATALOG_ITEMS_QUEUE_URL: props.catalogItemsQueue.queueUrl,
         },
       }
     );
 
-    // // Grant read access to S3
+    // Grant read access to S3
     bucket.grantReadWrite(importFileParserLambda);
+
+    // Grant SQS access to send messages
+    props.catalogItemsQueue.grantSendMessages(importFileParserLambda);
 
     // Grant permissions to write to the "parsed/" folder
     importFileParserLambda.addToRolePolicy(

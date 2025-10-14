@@ -1,4 +1,5 @@
 import { Handler, S3Event } from "aws-lambda";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import {
   S3Client,
   PutObjectCommand,
@@ -13,6 +14,7 @@ import csvParser from "csv-parser";
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "us-east-1",
 });
+const sqsClient = new SQSClient({});
 const BUCKET = process.env.BUCKET_NAME!;
 
 function sanitizeFileName(name: string) {
@@ -92,12 +94,14 @@ export const importFileParser: Handler = async (event: S3Event) => {
       const response = await s3Client.send(command);
 
       const stream = response.Body as Readable;
+      const results: any[] = [];
 
       await new Promise((resolve, reject) => {
         stream
           .pipe(csvParser())
-          .on("data", (data) => {
+          .on("data", async (data) => {
             console.log("Parsed record:", data);
+            results.push(data);
           })
           .on("end", () => {
             console.log("File parsed successfully");
@@ -108,6 +112,20 @@ export const importFileParser: Handler = async (event: S3Event) => {
             reject(err);
           });
       });
+
+      // Send messages to SQS after parsing
+      await Promise.all(
+        results.map((product) => {
+          console.log("Sent to SQS:", product);
+
+          return sqsClient.send(
+            new SendMessageCommand({
+              QueueUrl: process.env.CATALOG_ITEMS_QUEUE_URL!,
+              MessageBody: JSON.stringify(product),
+            })
+          );
+        })
+      );
 
       const newKey = key.replace("uploaded/", "parsed/");
 
