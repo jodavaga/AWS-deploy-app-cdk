@@ -4,6 +4,8 @@ import * as cdk from "aws-cdk-lib";
 import * as path from "path";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
+import * as sns from "aws-cdk-lib/aws-sns";
+import * as subs from "aws-cdk-lib/aws-sns-subscriptions";
 import { Construct } from "constructs";
 import { DynamoDbBaseTable } from "../../../src/dynamodb/dynamodb-base-class";
 import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
@@ -26,6 +28,16 @@ export class ProductStack extends cdk.Stack {
       visibilityTimeout: cdk.Duration.seconds(30),
     });
 
+    // SNS Topic
+    const createProductTopic = new sns.Topic(this, "CreateProductTopic", {
+      topicName: "createProductTopic",
+    });
+
+    // Email subscription
+    createProductTopic.addSubscription(
+      new subs.EmailSubscription("jose.vasquez@u.icesi.edu.co")
+    );
+
     // SQS Lambda
     const catalogBatchProcess = new lambda.Function(
       this,
@@ -42,6 +54,7 @@ export class ProductStack extends cdk.Stack {
           PRODUCTS_TABLE_NAME:
             PRODUCTS_TABLE_NAME ?? PRODUCTS_TABLE_NAME.tableName,
           CATALOG_ITEMS_QUEUE_URL: this.catalogItemsQueue.queueUrl,
+          CREATE_PRODUCT_TOPIC_ARN: createProductTopic.topicArn,
         },
       }
     );
@@ -180,5 +193,7 @@ export class ProductStack extends cdk.Stack {
 
     // SQS
     productsTable.grantWriteData(catalogBatchProcess);
+    // SNS Grant publish permission
+    createProductTopic.grantPublish(catalogBatchProcess);
   }
 }
