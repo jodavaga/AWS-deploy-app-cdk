@@ -83,7 +83,6 @@ export async function getProduct(
 ): Promise<ResponseProxyType> {
   try {
     const productId = event.pathParameters?.productId;
-    console.log("🚀 ~ getProduct ~ productId:", productId, event);
 
     const getProductCommand = new GetItemCommand({
       TableName: productsTableName,
@@ -101,7 +100,6 @@ export async function getProduct(
     }
 
     const productData = unmarshall(productResult.Item ?? {});
-    console.log("🚀 ~ getProduct ~ productResult:", productData);
 
     return {
       statusCode: 200,

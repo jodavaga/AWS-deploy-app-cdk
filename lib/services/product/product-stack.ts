@@ -44,15 +44,16 @@ export class ProductStack extends cdk.Stack {
       "CatalogBatchProcessLambda",
       {
         runtime: lambda.Runtime.NODEJS_20_X,
-        handler: "sqsHandler.catalogBatchProcess",
+        handler: "products-table-handler.catalogBatchProcess",
         code: lambda.Code.fromAsset(
-          path.join(__dirname, "../../../src/lambda/sqs")
+          path.join(__dirname, "../../../src/lambda/products")
         ),
         memorySize: 1024,
         timeout: cdk.Duration.seconds(10),
         environment: {
           PRODUCTS_TABLE_NAME:
             PRODUCTS_TABLE_NAME ?? PRODUCTS_TABLE_NAME.tableName,
+          STOCK_TABLE_NAME: STOCK_TABLE_NAME ?? STOCK_TABLE_NAME.tableName,
           CATALOG_ITEMS_QUEUE_URL: this.catalogItemsQueue.queueUrl,
           CREATE_PRODUCT_TOPIC_ARN: createProductTopic.topicArn,
         },
@@ -193,6 +194,7 @@ export class ProductStack extends cdk.Stack {
 
     // SQS
     productsTable.grantWriteData(catalogBatchProcess);
+    stockTable.grantWriteData(catalogBatchProcess);
     // SNS Grant publish permission
     createProductTopic.grantPublish(catalogBatchProcess);
   }

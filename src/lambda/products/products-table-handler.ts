@@ -1,12 +1,11 @@
-import { Handler } from "aws-lambda";
-import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { Handler, SQSEvent } from "aws-lambda";
+import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import { ResponseProxyType } from "../../../lib/services/product/handler";
+import { createProduct } from "./helpers/createProduct";
 
-const dynamoDBClient = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
-});
 export const productsTableName = process.env.PRODUCTS_TABLE_NAME || "products";
-const stockTableName = process.env.STOCK_TABLE_NAME;
+export const stockTableName = process.env.STOCK_TABLE_NAME || "stocks";
 
 export const addProduct: Handler = async (event, context) => {
   try {
@@ -14,29 +13,8 @@ export const addProduct: Handler = async (event, context) => {
     const body =
       typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
-    const addProductCommand = new PutItemCommand({
-      TableName: productsTableName,
-      Item: {
-        id: { S: productId },
-        title: { S: body.title },
-        description: { S: body.description },
-        price: { N: String(body.price || 50) },
-      },
-    });
+    const result = await createProduct(body);
 
-    // Update Stock count command
-    const stockCommand = new PutItemCommand({
-      TableName: stockTableName,
-      Item: {
-        product_id: { S: productId },
-        count: { N: body.count.toFixed() },
-      },
-    });
-
-    const stockResult = await dynamoDBClient.send(stockCommand);
-    console.log("UpdateStock count:", JSON.stringify(stockResult, null, 2));
-
-    const result = await dynamoDBClient.send(addProductCommand);
     if (!result) {
       console.log("failed creating product");
       return {
@@ -49,7 +27,10 @@ export const addProduct: Handler = async (event, context) => {
       } as ResponseProxyType;
     }
 
-    console.log("Add item succeeded:", JSON.stringify(result, null, 2));
+    console.log(
+      "Add item succeeded:",
+      JSON.stringify(unmarshall(result), null, 2)
+    );
 
     return {
       statusCode: 201,
@@ -73,4 +54,50 @@ export const addProduct: Handler = async (event, context) => {
       body: JSON.stringify({ message: "Error adding item", error }),
     };
   }
+};
+
+const snsClient = new SNSClient({});
+
+export const catalogBatchProcess: Handler = async (event: SQSEvent) => {
+  console.log("Received batch with", event.Records.length, "messages");
+
+  const createdProducts = [];
+
+  for (const record of event.Records) {
+    try {
+      const product = JSON.parse(record.body);
+      console.log("Processing product:", product);
+
+      const createdProduct = await createProduct(product);
+
+      createdProducts.push(createdProduct);
+    } catch (err) {
+      console.error("Error processing record:", err);
+    }
+  }
+
+  // Publish all created products to SNS
+  if (createdProducts.length > 0) {
+    const message = `New products created:\n\n${JSON.stringify(
+      createdProducts,
+      null,
+      2
+    )}`;
+
+    // Send email notification
+    await snsClient.send(
+      new PublishCommand({
+        TopicArn: process.env.CREATE_PRODUCT_TOPIC_ARN,
+        Subject: "New Products Added to Catalog",
+        Message: message,
+      })
+    );
+
+    console.log("Published message to SNS");
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify("Batch processed successfully"),
+  };
 };

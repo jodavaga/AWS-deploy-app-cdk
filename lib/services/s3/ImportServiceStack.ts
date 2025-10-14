@@ -7,7 +7,6 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
 import path from "path";
-import { Lambda } from "aws-cdk-lib/aws-ses-actions";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 
 interface ImportServiceStackProps extends cdk.StackProps {
