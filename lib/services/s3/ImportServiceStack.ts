@@ -17,6 +17,8 @@ export class ImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ImportServiceStackProps) {
     super(scope, id, props);
 
+    const authorizerArn = cdk.Fn.importValue("BasicAuthorizerLambdaArn");
+
     const bucket = new s3.Bucket(this, "StoreBucket", {
       versioned: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -108,14 +110,38 @@ export class ImportServiceStack extends cdk.Stack {
       },
     });
 
+    console.log("Imported authorizer ARN:", authorizerArn);
+    const basicAuthorizerLambda = lambda.Function.fromFunctionArn(
+      this,
+      "ImportedBasicAuthorizer",
+      authorizerArn
+    );
+
+    // Create authorizer
+    const tokenAuthorizer = new apigateway.TokenAuthorizer(
+      this,
+      "ImportTokenAuthorizer",
+      {
+        handler: basicAuthorizerLambda,
+      }
+    );
+
     const importResource = api.root.addResource("import");
     importResource.addMethod(
       "GET",
-      new apigateway.LambdaIntegration(s3ImportLambda)
+      new apigateway.LambdaIntegration(s3ImportLambda),
+      {
+        authorizer: tokenAuthorizer,
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+      }
     );
     importResource.addMethod(
       "PUT",
-      new apigateway.LambdaIntegration(s3ImportLambda)
+      new apigateway.LambdaIntegration(s3ImportLambda),
+      {
+        authorizer: tokenAuthorizer,
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+      }
     );
 
     bucket.addEventNotification(

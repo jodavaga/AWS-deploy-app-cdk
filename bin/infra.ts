@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { ProductStack } from "../lib/services/product/product-stack";
 import { DeployWebAppStack } from "../lib/deploy-web-app-stack";
 import { ImportServiceStack } from "../lib/services/s3/ImportServiceStack";
+import { AuthorizationServiceStack } from "../lib/services/authorization/cdk/authorization-service-stack";
 
 const app = new cdk.App();
 new DeployWebAppStack(app, "DeployWebAppStack", {});
@@ -17,8 +18,15 @@ new DeployWebAppStack(app, "DeployWebAppStack", {});
 //   //   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 // });
 
+const authorizationServiceStack = new AuthorizationServiceStack(
+  app,
+  "AuthorizationServiceStack"
+);
+
 const productServiceStack = new ProductStack(app, "ProductStack", {});
 
-new ImportServiceStack(app, "ImportServiceStack", {
+const importServiceStack = new ImportServiceStack(app, "ImportServiceStack", {
   catalogItemsQueue: productServiceStack.catalogItemsQueue,
 });
+
+importServiceStack.addDependency(authorizationServiceStack);
