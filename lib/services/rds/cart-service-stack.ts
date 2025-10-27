@@ -16,6 +16,7 @@ export class CartServiceCdkStack extends Stack {
     // Create VPC for Lambda + RDS
     const vpc = new ec2.Vpc(this, "CartVpc", {
       maxAzs: 2,
+      natGateways: 1,
       subnetConfiguration: [
         {
           name: "private-subnet",
@@ -31,7 +32,10 @@ export class CartServiceCdkStack extends Stack {
     //  Store database credentials
     const dbCredentials = new secretsmanager.Secret(this, "CartDBSecret", {
       generateSecretString: {
-        secretStringTemplate: JSON.stringify({ username: "cartadmin" }),
+        secretStringTemplate: JSON.stringify({
+          username: "cartadmin",
+          dbname: "cartdb",
+        }),
         generateStringKey: "password",
         excludePunctuation: true,
       },
@@ -42,10 +46,11 @@ export class CartServiceCdkStack extends Stack {
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_16,
       }),
+      databaseName: "cartdb",
       credentials: rds.Credentials.fromSecret(dbCredentials),
       vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-      publiclyAccessible: false, // ✅ Internal only
+      publiclyAccessible: false,
       multiAz: false,
       allocatedStorage: 20,
       instanceType: ec2.InstanceType.of(
@@ -69,6 +74,7 @@ export class CartServiceCdkStack extends Stack {
         handler: "handler",
         memorySize: 512,
         vpc,
+        vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
         bundling: {
           minify: true,
           externalModules: [
@@ -84,6 +90,8 @@ export class CartServiceCdkStack extends Stack {
           DB_SECRET_ARN: dbCredentials.secretArn,
           DB_HOST: db.dbInstanceEndpointAddress, // DB host for Nest app
           DB_PORT: "5432",
+          DB_NAME: "cartdb",
+          DB_USERNAME: "cartadmin",
         },
       }
     );
