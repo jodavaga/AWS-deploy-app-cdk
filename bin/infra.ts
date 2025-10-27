@@ -4,6 +4,7 @@ import { DeployWebAppStack } from "../lib/deploy-web-app-stack";
 import { ImportServiceStack } from "../lib/services/s3/ImportServiceStack";
 import { AuthorizationServiceStack } from "../lib/services/authorization/cdk/authorization-service-stack";
 import { HelloRdsStack } from "../lib/services/rds/hello-rds-stack";
+import { CartServiceCdkStack } from "../lib/services/rds/cart-service-stack";
 
 const app = new cdk.App();
 new DeployWebAppStack(app, "DeployWebAppStack", {});
@@ -20,7 +21,8 @@ new DeployWebAppStack(app, "DeployWebAppStack", {});
 // });
 
 const envAPS = { account: "485824811094", region: "us-east-1" };
-new HelloRdsStack(app, "HelloRdsStack", { env: envAPS });
+// new HelloRdsStack(app, "HelloRdsStack", { env: envAPS });
+new CartServiceCdkStack(app, "CartServiceCdkStack", { env: envAPS });
 
 const authorizationServiceStack = new AuthorizationServiceStack(
   app,

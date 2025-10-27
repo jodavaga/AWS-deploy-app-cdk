@@ -36,8 +36,8 @@ export class HelloRdsStack extends cdk.Stack {
 
     const dbInstance = new rds.DatabaseInstance(this, "RDSInstance", {
       // MySQL
-      engine: rds.DatabaseInstanceEngine.mysql({
-        version: rds.MysqlEngineVersion.VER_8_0,
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: rds.PostgresEngineVersion.VER_11,
       }),
 
       instanceType: ec2.InstanceType.of(
