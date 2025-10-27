@@ -68,6 +68,7 @@ export class CartServiceCdkStack extends Stack {
         ),
         handler: "handler",
         memorySize: 512,
+        vpc,
         bundling: {
           minify: true,
           externalModules: [
