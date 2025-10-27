@@ -17,7 +17,7 @@ export class AuthorizationServiceStack extends cdk.Stack {
       handler: "basicAuthorizer.basicAuthorizer",
       code: lambda.Code.fromAsset(path.join(__dirname, "../src/lambda")),
       environment: {
-        jodavaga: process.env.jodavaga ?? "TEST_PASSWORD",
+        // jodavaga: process.env.jodavaga ?? "TEST_PASSWORD",
       },
     });
 

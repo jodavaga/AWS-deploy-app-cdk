@@ -3,6 +3,7 @@ import { ProductStack } from "../lib/services/product/product-stack";
 import { DeployWebAppStack } from "../lib/deploy-web-app-stack";
 import { ImportServiceStack } from "../lib/services/s3/ImportServiceStack";
 import { AuthorizationServiceStack } from "../lib/services/authorization/cdk/authorization-service-stack";
+import { HelloRdsStack } from "../lib/services/rds/hello-rds-stack";
 
 const app = new cdk.App();
 new DeployWebAppStack(app, "DeployWebAppStack", {});
@@ -17,6 +18,9 @@ new DeployWebAppStack(app, "DeployWebAppStack", {});
 //   //   // env: { account: "485824811094", region: "us-east-1" },
 //   //   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 // });
+
+const envAPS = { account: "485824811094", region: "us-east-1" };
+new HelloRdsStack(app, "HelloRdsStack", { env: envAPS });
 
 const authorizationServiceStack = new AuthorizationServiceStack(
   app,

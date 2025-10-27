@@ -13,6 +13,8 @@ export const basicAuthorizer = async (
     throw new Error("Unauthorized"); // AWS converts this into a 401 automatically
   }
 
+  console.log("ENV:", JSON.stringify(process.env));
+
   try {
     const authToken = event.authorizationToken.replace("Basic ", ""); // "Basic base64encoded"
     const decoded = Buffer.from(authToken, "base64").toString("utf-8"); // "username:password"
@@ -35,6 +37,12 @@ const generatePolicy = (
   resource: string,
   effect: "Allow" | "Deny"
 ): APIGatewayAuthorizerResult => {
+  console.log("Generated policy:", { principalId, resource, effect });
+
+  // Example resource:
+  // arn:aws:execute-api:us-east-1:123456789012:apiId/dev/GET/import
+  const baseArn = resource.split("/GET")[0]; // keep wildcard for future paths
+
   return {
     principalId,
     policyDocument: {
@@ -43,9 +51,12 @@ const generatePolicy = (
         {
           Action: "execute-api:Invoke",
           Effect: effect,
-          Resource: resource,
+          Resource: [`${baseArn}/*`], // apply wildcard
         },
       ],
+    },
+    context: {
+      username: principalId,
     },
   };
 };

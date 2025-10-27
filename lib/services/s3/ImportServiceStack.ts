@@ -17,7 +17,7 @@ export class ImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ImportServiceStackProps) {
     super(scope, id, props);
 
-    const authorizerArn = cdk.Fn.importValue("BasicAuthorizerLambdaArn");
+    // const authorizerArn = cdk.Fn.importValue("BasicAuthorizerLambdaArn");
 
     const bucket = new s3.Bucket(this, "StoreBucket", {
       versioned: true,
@@ -101,20 +101,20 @@ export class ImportServiceStack extends cdk.Stack {
       })
     );
 
-    // 3) API Gateway: create /import GET
-    const api = new apigateway.RestApi(this, "ImportApi", {
-      restApiName: "Import Service",
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-      },
-    });
-
-    console.log("Imported authorizer ARN:", authorizerArn);
-    const basicAuthorizerLambda = lambda.Function.fromFunctionArn(
+    // Create the basicAuthorizer Lambda directly in this stack
+    const basicAuthorizerLambda = new lambda.Function(
       this,
-      "ImportedBasicAuthorizer",
-      authorizerArn
+      "BasicAuthorizerLambda",
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: "basicAuthorizer.basicAuthorizer",
+        code: lambda.Code.fromAsset(
+          path.join(__dirname, "../../../src/lambda")
+        ),
+        environment: {
+          jodavaga: process.env.jodavaga ?? "TEST_PASSWORD",
+        },
+      }
     );
 
     // Create authorizer
@@ -125,6 +125,20 @@ export class ImportServiceStack extends cdk.Stack {
         handler: basicAuthorizerLambda,
       }
     );
+
+    // 3) API Gateway: create /import GET
+    const api = new apigateway.RestApi(this, "ImportApi", {
+      restApiName: "Import Service",
+      defaultMethodOptions: {
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+        authorizer: tokenAuthorizer,
+      },
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ["Authorization"], // required for Basic Auth
+      },
+    });
 
     const importResource = api.root.addResource("import");
     importResource.addMethod(
